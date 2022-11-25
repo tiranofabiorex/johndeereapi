@@ -1,0 +1,86 @@
+<html>
+<head>
+    <title>MyJohnDeere_API OAuth2 Python Example</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='prism.css') }}">
+    <script>
+        function toggleDiv(div) {
+            var x = document.getElementById(div);
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
+    </script>
+</head>
+<body>
+<h1>Welcome to the MyJohnDeere_API Python Example.</h1>
+
+
+<div class="layout">
+    {% if credentials.accessToken %}
+    <div class="grid-item">
+        <div class="grid-container">
+            <div class="grid-item">
+                Access Token: <br/>
+
+                {% if credentials.accessToken %}
+                    <p class="token">{{credentials.accessToken}} <br/> <a onclick="toggleDiv('deets')" href="#">Toggle
+                        Details</a>
+                    </p>
+
+                    <div id="deets" style="display: none;">
+                        <pre><code class="language-json">{{credentials.accessTokenDetails}}</code></pre>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="grid-item">
+                Expiration: <br/>
+                <div id="deets">{{credentials.exp}}</div>
+            </div>
+
+            <div class="grid-item">
+                Refresh Token: <br/>
+                {% if credentials.refreshToken %}
+                    <p class="token">{{credentials.refreshToken}} <br/><a href="/refresh-access-token">Refresh The Access
+                        Token</a>
+                    </p>
+                {% endif %}
+            </div>
+
+
+        </div>
+     {% endif %}
+</div>
+</div>
+{% if credentials.accessToken %}
+    <div class="grid-container">
+        <form method="post" action="/call-api">
+            <div class="grid-item">
+                <label id="urlLabel" for="url"> Simple API Invoke With Token:</label>
+                <input type="url" id="url" name="url" aria-label="urlLabel"
+                       value={{settings.apiUrl}}/organizations/>
+            </div>
+            <div class="grid-item">
+                <input type="submit" value="Go!">
+            </div>
+            {% if credentials.apiResponse %}
+                <div class="grid-item">
+                <pre class="token">
+                    <code class="language-json">
+                        {{credentials.apiResponse}}
+                    </code>
+                </pre>
+                </div>
+            {% endif %}
+        </form>
+
+    </div>
+{% endif %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='functions.js') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='prism.js') }}">
+</body>
+</html>
