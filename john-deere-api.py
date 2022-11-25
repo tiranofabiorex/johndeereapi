@@ -10,9 +10,10 @@ from flask import Flask, render_template, request, redirect
 import requests
 import urllib.parse
 
+
 app = Flask(__name__)
 
-SERVER_URL = 'http://localhost:9010'
+SERVER_URL = 'http://localhost:8000'
 
 settings = {
     'apiUrl': 'https://sandboxapi.deere.com/platform',
@@ -83,11 +84,8 @@ def get_oidc_query_string():
 
 @app.route("/connect")
 def start_oidc():
-    print("Chamei a função")
     redirect_url = f"{get_location_from_metadata('authorization_endpoint')}?{get_oidc_query_string()}"
-    print(redirect_url)
-
-    return redirect(redirect_url, code=302)
+    return redirect(redirect_url)
 
 
 def needs_organization_access():
@@ -112,10 +110,8 @@ def needs_organization_access():
 
 @app.route("/callback")
 def process_callback():
-    print("Apitou callback")
     try:
         code = request.args['code']
-        print(code)
         headers = {
             'authorization': 'Basic ' + get_basic_auth_header().decode('utf-8'),
             'Accept': 'application/json',
@@ -142,13 +138,10 @@ def process_callback():
         return render_error('Error getting token!')
 
 
-@app.route("/call-api", methods=['POST'])
-def call_the_api():
+def call_the_api(url):
     try:
-        url = request.form['url']
         res = api_get(credentials['accessToken'], url)
-        credentials['apiResponse'] = json.dumps(res.json(), indent=4)
-        return index()
+        return res.json()
     except Exception as e:
         logging.exception(e)
         return render_error('Error calling API!')
@@ -186,8 +179,26 @@ def client():
 
 @app.route("/")
 def index():
-    return redirect("http://localhost:9010/connect")
+    return redirect(f"{SERVER_URL}/connect")
+
+
+@app.route("/api/organizations")
+def get_organizations():
+    apiUrl = settings["apiUrl"]
+    return call_the_api(f"{apiUrl}/organizations")
+
+
+@app.route("/api/organizations/<org_id>")
+def get_organization(org_id):
+    apiUrl = settings["apiUrl"]
+    return call_the_api(f"{apiUrl}/organizations/{org_id}")
+
+
+@app.route("/api/organizations/<org_id>/<path>")
+def get_organization_details(org_id, path):
+    apiUrl = settings["apiUrl"]
+    return call_the_api(f"{apiUrl}/organizations/{org_id}/{path}")
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=9010)
+    app.run(host='0.0.0.0', port=8000)
